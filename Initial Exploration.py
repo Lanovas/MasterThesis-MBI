@@ -19,12 +19,16 @@ for file in allFiles:
     patent_list.append(df)
 
 patent_set = pd.concat(objs = patent_list, axis = 0, ignore_index = True)
-
-# Create a database with the full patent data set
-
-# Data exploration
 print(patent_set.shape)
 
+# Create a database with the full patent data set
+connection = pymysql.connect(host = 'localhost',
+                             user = '')
 
 
-#pymysql.connect
+
+# Data exploration
+
+
+
+
