@@ -2,7 +2,7 @@
 import os
 import glob
 import pandas as pd
-import pymysql
+import psycopg2 as pypos
 
 # Retrieve the working directory
 cwd = os.getcwd()
@@ -22,8 +22,30 @@ patent_set = pd.concat(objs = patent_list, axis = 0, ignore_index = True)
 print(patent_set.shape)
 
 # Create a database with the full patent data set
-connection = pymysql.connect(host = 'localhost',
-                             user = '')
+try:
+    connection = pypos.connect(user = 'postgres',
+                               password = 'Depp1323!',
+                               host = '127.0.0.1',
+                               port = 5432,
+                               database = 'MasterThesisData')
+    cursor = connection.cursor()
+    # Print PostgreSQL Connection properties
+    print(connection.get_dsn_parameters(), "\n")
+
+    # Print PostgreSQL version
+    cursor.execute("SELECT version();")
+    record = cursor.fetchone()
+    print("You are connected to - ", record,"\n")
+
+except (Exception, pypos.Error) as error :
+    print ("Error while connecting to PostgreSQL", error)
+
+finally:
+    #closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+            print("PostgreSQL connection is closed")
 
 
 
