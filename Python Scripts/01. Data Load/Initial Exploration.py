@@ -37,7 +37,7 @@ try:
     record = cursor.fetchone()
     print("You are connected to - ", record,"\n")
 
-except (Exception, psycopg2.Error) as error:
+except (Exception, psycopg2.Error) as error :
     print ("Error while connecting to PostgreSQL", error)
 
 finally:
