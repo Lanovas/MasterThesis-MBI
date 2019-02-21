@@ -8,7 +8,7 @@ import psycopg2 as pypos
 cwd = os.getcwd()
 
 # Load the data for analysis
-path = "SourceData/Patent Data/"
+path = "Python Scripts/00. Database/SourceData/Patent Data/"
 extension = "csv"
 allFiles = glob.glob(pathname = path + "/*." + extension)
 
@@ -21,7 +21,7 @@ for file in allFiles:
 patent_set = pd.concat(objs = patent_list, axis = 0, ignore_index = True)
 print(patent_set.shape)
 
-# Create a database with the full patent data set
+# Load the data to the data table patent_data
 try:
     connection = pypos.connect(user = 'postgres',
                                password = 'Depp1323!',

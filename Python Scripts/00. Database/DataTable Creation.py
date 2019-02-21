@@ -7,6 +7,9 @@ pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.
                       sep=";", encoding="UTF-8")
 
 try:
+    # connect to the PostgreSQL server
+    print("Connecting to the PostgreSQL database...")
+
     connection = pypos.connect(user=pwd_gen.loc[0, 'user'],
                                password=pwd_gen.loc[0, 'password'],
                                host=pwd_gen.loc[0, 'host'],
@@ -22,7 +25,21 @@ try:
     record = cursor.fetchone()
     print("You are connected to - ", record, "\n")
 
-except (Exception, psycopg2.Error) as error:
+    # Create the database tables needed for the patent data
+    commands = (
+        """
+        CREATE TABLE patent_data(
+        
+        
+        )
+        
+        """
+    )
+
+    # close the communication with the PostgreSQL
+    cursor.close()
+
+except (Exception, pypos.Error) as error:
     print("Error while connecting to PostgreSQL", error)
 finally:
     # closing database connection.
