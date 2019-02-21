@@ -23,11 +23,11 @@ print(patent_set.shape)
 
 # Load the data to the data table patent_data
 try:
-    connection = pypos.connect(user = 'postgres',
-                               password = 'Depp1323!',
-                               host = '127.0.0.1',
-                               port = 5432,
-                               database = 'MasterThesisData')
+    connection = pypos.connect(user=pwd_gen.loc[0, 'user'],
+                               password=pwd_gen.loc[0, 'password'],
+                               host=pwd_gen.loc[0, 'host'],
+                               port=pwd_gen.loc[0, 'port'],
+                               database=pwd_gen.loc[0, 'database'])
     cursor = connection.cursor()
     # Print PostgreSQL Connection properties
     print(connection.get_dsn_parameters(), "\n")
