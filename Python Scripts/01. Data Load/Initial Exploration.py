@@ -22,32 +22,42 @@ for file in allFiles:
 patent_set = pd.concat(objs = patent_list, axis = 0, ignore_index = True)
 print(patent_set.shape)
 
-# Load the data to the data table patent_data
+# Connecting to the database
+pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv",
+                      sep=";", encoding="UTF-8")
+
 try:
-    connection = pypos.connect(user=pwd_gen.loc[0, 'user'],
-                               password=pwd_gen.loc[0, 'password'],
-                               host=pwd_gen.loc[0, 'host'],
-                               port=pwd_gen.loc[0, 'port'],
-                               database=pwd_gen.loc[0, 'database'])
-    cursor = connection.cursor()
-    # Print PostgreSQL Connection properties
-    print(connection.get_dsn_parameters(), "\n")
+    # connect to the MySQL server
+    print("Connecting to the MySQL database...")
 
-    # Print PostgreSQL version
-    cursor.execute("SELECT version();")
-    record = cursor.fetchone()
-    print("You are connected to - ", record,"\n")
-    
-except (Exception, psycopg2.Error) as error :
-    print ("Error while connecting to PostgreSQL", error)
+    connection = mysql.connector.connect(user=pwd_gen.loc[0, 'user'],
+                                         password=pwd_gen.loc[0, 'password'],
+                                         host=pwd_gen.loc[0, 'host'],
+                                         port=pwd_gen.loc[0, 'port'],
+                                         database=pwd_gen.loc[0, 'database'])
+
+except mysql.connector.Error as error:
+
+    if error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        print("Something is wrong with your user name or password")
+    elif error.errno == errorcode.ER_BAD_DB_ERROR:
+        print("Database does not exist")
+    else:
+        print(error)
 finally:
-    #closing database connection.
-        if(connection):
-            cursor.close()
-            connection.close()
-            print("PostgreSQL connection is closed")
+    if (connection):
+        print("Connection was successful!")
+
+# Load the data to the data table patent_data
 
 
+
+cursor.close()
+
+# closing database connection
+if (connection):
+    connection.close()
+    print("MySQL connection is closed")
 
 # Data exploration
 
