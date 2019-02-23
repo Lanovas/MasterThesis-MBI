@@ -30,11 +30,69 @@ finally:
         print("Connection was successful!")
 
 # Create a database with the full patent data set
+TABLES = {}
+TABLES['origin_greece'] = (
+    "CREATE TABLE `origin_greece` ("
+    "`publication` varchar(200) NOT NULL,"
+    "`publication_date` varchar(50),"
+    "`publication_week` varchar(10),"
+    "`publication_language` varchar(10),"
+    "`first_filing_date` varchar(50),"
+    "`ipc_full_level_invention_information` varchar(1000),"
+    "`inventor_city` varchar(1000),"
+    "`inventor_country` varchar(100),"
+    "`applicant_proprietor_country` varchar(100),"
+    "`representative_country` varchar(100),"
+    "`title_english` varchar(1000),"
+    "PRIMARY KEY (`publication`),"
+    "INDEX (`publication_date`)"
+") ENGINE = InnoDB")
 
+cursor = connection.cursor()
 
+'''
+def create_database(cursor):
+    try:
+        cursor.execute(
+            "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(DB_NAME))
+    except mysql.connector.Error as err:
+        print("Failed creating database: {}".format(err))
+        exit(1)
 
+try:
+    cursor.execute("USE {}".format(DB_NAME))
+except mysql.connector.Error as err:
+    print("Database {} does not exists.".format(DB_NAME))
+    if err.errno == errorcode.ER_BAD_DB_ERROR:
+        create_database(cursor)
+        print("Database {} created successfully.".format(DB_NAME))
+        cnx.database = DB_NAME
+    else:
+        print(err)
+        exit(1)
+'''
+
+# Looping over the tables existing in the tables dictionary and executing the
+# SQL commands necessary to create a table
+
+for table_name in TABLES:
+    table_description = TABLES[table_name]
+
+    try:
+        print("Creating table {}: ".format(table_name), end='')
+        cursor.execute(table_description)
+    except mysql.connector.Error as error:
+        if error.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+            print("Table already exists.")
+        else:
+            print(error.msg)
+    else:
+        print("Table created successfully!")
+
+cursor.close()
 
 # closing database connection
 if (connection):
     connection.close()
     print("MySQL connection is closed")
+

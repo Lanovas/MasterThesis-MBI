@@ -2,7 +2,8 @@
 import os
 import glob
 import pandas as pd
-import psycopg2 as pypos
+import mysql.connector
+from mysql.connector import errorcode
 
 # Retrieve the working directory
 cwd = os.getcwd()
