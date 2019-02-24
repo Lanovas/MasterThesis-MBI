@@ -2,9 +2,8 @@
 import os
 import glob
 import pandas as pd
-import mysql.connector
-from mysql.connector import errorcode
-import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy import inspect
 
 # Retrieve the working directory
 cwd = os.getcwd()
@@ -43,7 +42,6 @@ patent_set.columns = patent_set.columns.str.replace('_en', '_english')
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv",
                       sep=";", encoding="UTF-8")
 
-# Connection
 # Connecting to mysql by providing a sqlachemy engine
 user=str(pwd_gen.loc[0, 'user'])
 password=str(pwd_gen.loc[0, 'password'])
@@ -51,48 +49,28 @@ host=str(pwd_gen.loc[0, 'host'])
 port=str(pwd_gen.loc[0, 'port'])
 database=str(pwd_gen.loc[0, 'database'])
 
-engine_connection_mysql = sqlalchemy.create_engine('mysql+mysqlconnector://['+
-                                        user+
-                                        ']:['+
-                                        password+
-                                        ']:@['+
-                                        host+
-                                        ']:['+
-                                        port+
-                                        ']/patent_data', echo=False)
-
-patent_set.to_sql(name="oigin_greece",
-                  con=engine,
-                  if_exists="append",
-                  index=False)
-
 try:
     # connect to the MySQL server
     print("Connecting to the MySQL database...")
+    engine = create_engine('mysql+mysqlconnector://'+user+':'+password+'@'+host+':'+port+'/'+database,
+                            echo=False)
+    connection = engine.connect()
+    inspector = inspect(engine)
 
-    connection = mysql.connector.connect(user=pwd_gen.loc[0, 'user'],
-                                         password=pwd_gen.loc[0, 'password'],
-                                         host=pwd_gen.loc[0, 'host'],
-                                         port=pwd_gen.loc[0, 'port'],
-                                         database=pwd_gen.loc[0, 'database'])
-
-except mysql.connector.Error as error:
-
-    if error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-        print("Something is wrong with your user name or password")
-    elif error.errno == errorcode.ER_BAD_DB_ERROR:
-        print("Database does not exist")
-    else:
-        print(error)
 finally:
-    if (connection):
+    if 'origin_greece' in inspector.get_table_names():
         print("Connection was successful!")
 
 # Load the data to the data table patent_data
-patent_set.to_sql(name='origin_greece', con=connection, if_exists='append', index=False)
+patent_set.to_sql(name='oigin_greece',
+                  con=engine,
+                  if_exists='append',
+                  index=False)
+connection.close()
+engine.dispose()
 
+data = pd.read_sql('SELECT * FROM origin_greece', engine_connection_mysql)
 
-cursor.close()
 
 # closing database connection
 if (connection):
