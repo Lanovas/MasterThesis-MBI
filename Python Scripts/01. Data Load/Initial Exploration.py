@@ -31,12 +31,26 @@ patent_set = pd.concat(objs=patent_list, axis=0, ignore_index=True)
 print(patent_set.shape)
 print(patent_set.columns.values)
 
+# Change the column names
 patent_set.columns = [x.lower() for x in patent_set.columns]
 patent_set.columns = patent_set.columns.str.replace(' ', '_')
 patent_set.columns = patent_set.columns.str.replace('(', '')
 patent_set.columns = patent_set.columns.str.replace(')', '')
 patent_set.columns = patent_set.columns.str.replace('/_', '')
 patent_set.columns = patent_set.columns.str.replace('_en', '_english')
+
+# Adjust the column types
+patent_set.dtypes
+patent_set['publication_date'] = patent_set['publication_date'].astype(str)
+patent_set['publication_week'] = patent_set['publication_week'].astype(str)
+patent_set['first_filing_date'] = patent_set['first_filing_date'].astype(str)
+
+# Data formatting fix
+patent_set.columns
+patent_set['publication_language'] = patent_set['publication_language'].str.upper()
+patent_set['inventor_country'] = patent_set['inventor_country'].str.upper()
+patent_set['applicant_proprietor_country'] = patent_set['applicant_proprietor_country'].str.upper()
+patent_set['representative_country'] = patent_set['representative_country'].str.upper()
 
 # Connecting to the database
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv",
@@ -62,23 +76,11 @@ finally:
         print("Connection was successful!")
 
 # Load the data to the data table patent_data
-patent_set.to_sql(name='oigin_greece',
+patent_set.to_sql(name='origin_greece',
                   con=engine,
                   if_exists='append',
                   index=False)
+
+# Close the MySQL connection
 connection.close()
 engine.dispose()
-
-data = pd.read_sql('SELECT * FROM origin_greece', engine_connection_mysql)
-
-
-# closing database connection
-if (connection):
-    connection.close()
-    print("MySQL connection is closed")
-
-# Data exploration
-
-
-
-
