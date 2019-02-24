@@ -2,6 +2,7 @@
 import os
 import glob
 import pandas as pd
+import re
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -13,14 +14,29 @@ path = "Python Scripts/00. Database/SourceData/Patent Data/"
 extension = "csv"
 allFiles = glob.glob(pathname = path + "/*." + extension)
 
+# Merge all the csv's together
 patent_list = []
+cols_to_read = ['Publication', 'Publication date', 'Publication week',
+                'Publication language', 'First filing date', 'IPC full level (invention information)',
+                'Inventor (city)', 'Inventor (country)',  'Applicant / Proprietor (country)',
+                'Representative (country)', 'Title (en)']
+
 #patent_set = [i for i in glob.glob('*.{}'.format(extension))]
 for file in allFiles:
-    df = pd.read_csv(file, delimiter = ";", header = 0, index_col = None)
+    df = pd.read_csv(file, delimiter = ";", header = 0, index_col = None, usecols=cols_to_read)
     patent_list.append(df)
 
 patent_set = pd.concat(objs = patent_list, axis = 0, ignore_index = True)
+
+# Stage the dataset for loading it into MySQL
 print(patent_set.shape)
+print(patent_set.columns.values)
+patent_set.columns = [x.lower() for x in patent_set.columns]
+patent_set.columns = patent_set.columns.str.replace(' ', '_')
+patent_set.columns = patent_set.columns.str.replace('(', '')
+patent_set.columns = patent_set.columns.str.replace(')', '')
+patent_set.columns = patent_set.columns.str.replace('/_', '')
+patent_set.columns = patent_set.columns.str.replace('_en', '_english')
 
 # Connecting to the database
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv",
