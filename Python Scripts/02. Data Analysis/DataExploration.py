@@ -52,9 +52,20 @@ print(patent_set.dtypes)
 
 patent_set['publication_date_adj'] = patent_set.apply(lambda x: datetime.date(x['publication_year'], x['publication_month'], x['publication_day']), axis=1)
 
+# Average publication period after filling
+patent_set['filing_to_publication_years'] = patent_set['publication_year'] - patent_set['first_filing_year']
+print(round(patent_set['filing_to_publication_years'].mean(), ndigits=1))
+bins_of_duration = pd.DataFrame(patent_set.groupby(['filing_to_publication_years']).count()['publication'])
+print(bins_of_duration)
+bins_of_duration.plot(kind='bar')
+
+bins_of_duration_per_year = pd.DataFrame(patent_set.groupby(['publication_year', 'filing_to_publication_years']).count()['publication'])
+print(bins_of_duration_per_year)
+bins_of_duration_per_year.unstack().plot(kind='bar')
+
 # Focus on the patents that have at least one Greek inventor in the list of inventors
 # Check the presence of Greece in the inventor country
-greek_inventor = patent_set[patent_set['inventor_country'].str.contains("GR")==True]
+greek_inventor = pd.DataFrame(patent_set[patent_set['inventor_country'].str.contains("GR")==True])
 
 # Number of patents that have at least one Greek inventor in the list
 print(greek_inventor['publication_year'].min())
@@ -62,13 +73,6 @@ print(greek_inventor['publication_year'].max())
 print(greek_inventor.shape[0])
 
 # Plotting the number of patents per year
-greek_patents_per_year = greek_inventor.groupby(['publication_year']).count()['publication']
+greek_patents_per_year = pd.DataFrame(greek_inventor.groupby(['publication_year']).count()['publication'])
 print(greek_patents_per_year)
 greek_patents_per_year.plot(kind='bar')
-
-
-
-
-
-
-
