@@ -51,3 +51,24 @@ patent_set[['first_filing_year', 'publication_year', 'publication_month', 'publi
 print(patent_set.dtypes)
 
 patent_set['publication_date_adj'] = patent_set.apply(lambda x: datetime.date(x['publication_year'], x['publication_month'], x['publication_day']), axis=1)
+
+# Focus on the patents that have at least one Greek inventor in the list of inventors
+# Check the presence of Greece in the inventor country
+greek_inventor = patent_set[patent_set['inventor_country'].str.contains("GR")==True]
+
+# Number of patents that have at least one Greek inventor in the list
+print(greek_inventor['publication_year'].min())
+print(greek_inventor['publication_year'].max())
+print(greek_inventor.shape[0])
+
+# Plotting the number of patents per year
+greek_patents_per_year = greek_inventor.groupby(['publication_year']).count()['publication']
+print(greek_patents_per_year)
+greek_patents_per_year.plot(kind='bar')
+
+
+
+
+
+
+
