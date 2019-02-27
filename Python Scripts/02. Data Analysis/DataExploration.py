@@ -1,4 +1,5 @@
 # Import the necessary packages
+import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
@@ -62,7 +63,7 @@ long_filing_patents = pd.DataFrame(patent_set[patent_set['filing_to_publication_
 
 bins_of_duration_per_year = pd.DataFrame(patent_set.groupby(['publication_year', 'filing_to_publication_years']).count()['publication'])
 print(bins_of_duration_per_year)
-bins_of_duration_per_year.unstack().plot(kind='bar')
+#bins_of_duration_per_year.unstack().plot(kind='bar')
 
 # Focus on the patents that have at least one Greek inventor in the list of inventors
 # Check the presence of Greece in the inventor country
@@ -77,3 +78,19 @@ print(greek_inventor.shape[0])
 greek_patents_per_year = pd.DataFrame(greek_inventor.groupby(['publication_year']).count()['publication'])
 print(greek_patents_per_year)
 greek_patents_per_year.plot(kind='bar')
+
+# Check the type of patent - CPC sections
+# https://www.epo.org/searching-for-patents/helpful-resources/first-time-here/classification/cpc.html
+cpc_classification = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'Y'],
+['Human Necessities', 'Performing Operations-Transporting', 'Chemistry-Metallurgy', 'Textiles-Paper',
+'Fixed Constructions', 'Mechanical Engineering (lighting, heating, weapons, blasting engines, pumps)',
+'Physics', 'Electricity', 'General tagging of new technological developments']]
+
+print(cpc_classification[0])
+
+# Get the first character of the IPC column in order to determine the classification of the patent
+print(greek_inventor.columns)
+greek_inventor['cpc_classification'] = greek_inventor['ipc_full_level_invention_information'].str[:1]
+
+for cpc_class in cpc_classification:
+    print(cpc_classification[cpc_class])
