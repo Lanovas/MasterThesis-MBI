@@ -58,6 +58,7 @@ print(round(patent_set['filing_to_publication_years'].mean(), ndigits=1))
 bins_of_duration = pd.DataFrame(patent_set.groupby(['filing_to_publication_years']).count()['publication'])
 print(bins_of_duration)
 bins_of_duration.plot(kind='bar')
+long_filing_patents = pd.DataFrame(patent_set[patent_set['filing_to_publication_years']==16])
 
 bins_of_duration_per_year = pd.DataFrame(patent_set.groupby(['publication_year', 'filing_to_publication_years']).count()['publication'])
 print(bins_of_duration_per_year)
