@@ -81,16 +81,24 @@ greek_patents_per_year.plot(kind='bar')
 
 # Check the type of patent - CPC sections
 # https://www.epo.org/searching-for-patents/helpful-resources/first-time-here/classification/cpc.html
-cpc_classification = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'Y'],
-['Human Necessities', 'Performing Operations-Transporting', 'Chemistry-Metallurgy', 'Textiles-Paper',
+cpc_classification = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'Y']
+cpc_area = ['Human Necessities', 'Performing Operations-Transporting', 'Chemistry-Metallurgy', 'Textiles-Paper',
 'Fixed Constructions', 'Mechanical Engineering (lighting, heating, weapons, blasting engines, pumps)',
-'Physics', 'Electricity', 'General tagging of new technological developments']]
-
-print(cpc_classification[0])
+'Physics', 'Electricity', 'General tagging of new technological developments']
+cpc_code_match = list(zip(cpc_classification, cpc_area))
+cpc_match = pd.DataFrame(cpc_code_match, columns=['cpc_classification', 'cpc_area'])
 
 # Get the first character of the IPC column in order to determine the classification of the patent
 print(greek_inventor.columns)
 greek_inventor['cpc_classification'] = greek_inventor['ipc_full_level_invention_information'].str[:1]
+# Match with the cpc_match, so as to get the cpc area
+greek_inventor = greek_inventor.merge(cpc_match, on=['cpc_classification'], how='left')
 
-for cpc_class in cpc_classification:
-    print(cpc_classification[cpc_class])
+# Fill the na values in place for better visualization
+greek_inventor.fillna('Other', inplace=True)
+# Count the publications per year and per type
+greek_patents_per_type = pd.DataFrame(greek_inventor.groupby(['publication_year', 'cpc_area']).count()['publication']).reset_index()
+
+fig, ax = plt.subplots()
+for label, data in greek_patents_per_type.groupby('cpc_area'):
+    data.plot(x='publication_year', y='publication', ax=ax, label=label)
