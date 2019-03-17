@@ -32,7 +32,7 @@ except UnicodeDecodeError:
 except KeyError:
     print("KeyError...")
 finally:
-    print("Successful Connection ot the API!")
+    print("Successful Connection to the API!")
     gdp_series = list(gdp_connection.data.series)
     # Explore the resulted dataset
     print("The length of the resulted data set is: " + str(len(gdp_series)))
@@ -125,26 +125,24 @@ def reshape_dataset(oecd_dataset):
     :param oecd_dataset:
     :return:
     '''
-    oecd_dataset = pd.melt(frame=oecd_dataset, id_vars=['TIME_PERIOD'], var_name='country', value_name='gdp_b1_ga_vob')
+    oecd_dataset = pd.melt(frame=oecd_dataset, id_vars=['TIME_PERIOD'], var_name='country', value_name='gdp_b1_ga')
     oecd_dataset.columns = [x.lower() for x in oecd_dataset.columns]
     oecd_dataset['country'] = oecd_dataset['country'].str.replace('_B1_GA_VOB', '')
     oecd_dataset['country'] = oecd_dataset['country'].str.replace('_B1_GA_G', '')
-    oecd_dataset['gdp_b1_ga_vob'].fillna(0, inplace=True)
-
+    oecd_dataset['gdp_b1_ga'].fillna(0, inplace=True)
     oecd_dataset['time_period'] = oecd_dataset['time_period'].astype(str).astype(int)
 
     return oecd_dataset
 
 # Apply the function
 gdp_dataset_vob = reshape_dataset(oecd_dataset=gdp_dataset_vob)
+gdp_dataset_vob = gdp_dataset_vob.rename(columns={gdp_dataset_vob.columns[2]:'gdp_b1_ga_vob'})
 gdp_dataset_growth_rate = reshape_dataset(oecd_dataset=gdp_dataset_growth_rate)
+gdp_dataset_growth_rate = gdp_dataset_growth_rate.rename(columns={gdp_dataset_growth_rate.columns[2]:'gdp_b1_ga_g'})
 
 # Check the structure before sending the data sets to the DB
 print(gdp_dataset_vob.info())
-print(gdp_dataset_vob.describe())
-
 print(gdp_dataset_growth_rate.info())
-print(gdp_dataset_growth_rate.describe())
 
 # Connecting to the database
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv", sep=";", encoding="UTF-8")
@@ -168,15 +166,17 @@ finally:
     if 'origin_greece' in inspector.get_table_names():
         print("Connection was successful!")
 
-# Load the data to the data table oecd_rmw
-print(rmw_melted.info())
-print(rmw_melted.describe())
-rmw_melted['time_period'] = rmw_melted['time_period'].astype(str).astype(int)
+# Load the data to the data table gdp_b1_ga_vob
+gdp_dataset_vob.to_sql(name='gdp_b1_ga_vob',
+                       con=engine,
+                       if_exists='append',
+                       index=False)
 
-rmw_melted.to_sql(name='oecd_rmw',
-                  con=engine,
-                  if_exists='append',
-                  index=False)
+# Load the data to the data table gdp_b1_ga_g
+gdp_dataset_growth_rate.to_sql(name='gdp_b1_ga_g',
+                               con=engine,
+                               if_exists='append',
+                               index=False)
 
 # Close the MySQL connection
 connection.close()
