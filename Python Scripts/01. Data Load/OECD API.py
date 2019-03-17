@@ -58,7 +58,6 @@ rmw_melted = rmw_melted.rename(columns={'hourly_minimum_wage':'hourly_minimum_wa
 rmw_melted = rmw_melted[['time_period', 'country', 'hourly_minimum_wage_ppp']]
 rmw_melted['hourly_minimum_wage_ppp'].fillna(0, inplace=True)
 
-
 # Connecting to the database
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv", sep=";", encoding="UTF-8")
 
@@ -94,6 +93,3 @@ rmw_melted.to_sql(name='oecd_rmw',
 # Close the MySQL connection
 connection.close()
 engine.dispose()
-
-# ----------------------- Real minimum wages (RMW) ----------------------- #
-# Real hourly and annual minimum wages are statutory minimum wages
