@@ -81,8 +81,12 @@ finally:
     if 'origin_greece' in inspector.get_table_names():
         print("Connection was successful!")
 
-# Load the data to the data table patent_data
-patent_set.to_sql(name='origin_greece',
+# Load the data to the data table oecd_rmw
+print(rmw_melted.info())
+print(rmw_melted.describe())
+rmw_melted['time_period'] = rmw_melted['time_period'].astype(str).astype(int)
+
+rmw_melted.to_sql(name='oecd_rmw',
                   con=engine,
                   if_exists='append',
                   index=False)

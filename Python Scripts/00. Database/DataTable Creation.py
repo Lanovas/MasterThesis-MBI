@@ -49,36 +49,13 @@ TABLES['origin_greece'] = (
 
 TABLES['oecd_rmw'] = (
     "CREATE TABLE `oecd_rmw` ("
-    "`time_period` int NOT NULL,"
+    "`time_period` int not null,"
     "`country` varchar(50),"
     "`hourly_minimum_wage_ppp` numeric(12,2),"
-    "PRIMARY KEY (`time_period`),"
     "INDEX (`time_period`)"
 ") ENGINE = InnoDB")
 
 cursor = connection.cursor()
-
-'''
-def create_database(cursor):
-    try:
-        cursor.execute(
-            "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(DB_NAME))
-    except mysql.connector.Error as err:
-        print("Failed creating database: {}".format(err))
-        exit(1)
-
-try:
-    cursor.execute("USE {}".format(DB_NAME))
-except mysql.connector.Error as err:
-    print("Database {} does not exists.".format(DB_NAME))
-    if err.errno == errorcode.ER_BAD_DB_ERROR:
-        create_database(cursor)
-        print("Database {} created successfully.".format(DB_NAME))
-        cnx.database = DB_NAME
-    else:
-        print(err)
-        exit(1)
-'''
 
 # Looping over the tables existing in the tables dictionary and executing the
 # SQL commands necessary to create a table
