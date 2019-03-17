@@ -94,3 +94,6 @@ rmw_melted.to_sql(name='oecd_rmw',
 # Close the MySQL connection
 connection.close()
 engine.dispose()
+
+# ----------------------- Real minimum wages (RMW) ----------------------- #
+# Real hourly and annual minimum wages are statutory minimum wages
