@@ -4,8 +4,7 @@ import mysql.connector
 from mysql.connector import errorcode
 
 # Connecting to the database
-pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv",
-                      sep=";", encoding="UTF-8")
+pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv", sep=";", encoding="UTF-8")
 
 try:
     # connect to the MySQL server
@@ -46,6 +45,15 @@ TABLES['origin_greece'] = (
     "`title_english` varchar(10000),"
     "PRIMARY KEY (`publication`),"
     "INDEX (`publication_date`)"
+") ENGINE = InnoDB")
+
+TABLES['oecd_rmw'] = (
+    "CREATE TABLE `oecd_rmw` ("
+    "`time_period` int NOT NULL,"
+    "`country` varchar(50),"
+    "`hourly_minimum_wage_ppp` numeric(12,2),"
+    "PRIMARY KEY (`time_period`),"
+    "INDEX (`time_period`)"
 ") ENGINE = InnoDB")
 
 cursor = connection.cursor()
@@ -95,4 +103,3 @@ cursor.close()
 if (connection):
     connection.close()
     print("MySQL connection is closed")
-

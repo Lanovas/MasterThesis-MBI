@@ -7,7 +7,7 @@ from sqlalchemy import inspect
 # root_url = "https://stats.oecd.org/restsdmx/sdmx.ashx/GetData/"
 oecd_connection = pdmx.api.Request('OECD')
 
-# ----------------------- Real minimum wages ----------------------- #
+# ----------------------- Real minimum wages (RMW) ----------------------- #
 # Real hourly and annual minimum wages are statutory minimum wages
 # converted into a common hourly and annual pay period for the 28 OECD countries
 # and 4 non-member countries for which they are available. The resulting estimates
@@ -60,8 +60,7 @@ rmw_melted['hourly_minimum_wage_ppp'].fillna(0, inplace=True)
 
 
 # Connecting to the database
-pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv",
-                      sep=";", encoding="UTF-8")
+pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv", sep=";", encoding="UTF-8")
 
 # Connecting to mysql by providing a sqlachemy engine
 user=str(pwd_gen.loc[0, 'user'])
