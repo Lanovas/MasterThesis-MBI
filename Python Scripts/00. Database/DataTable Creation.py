@@ -55,6 +55,22 @@ TABLES['oecd_rmw'] = (
     "INDEX (`time_period`)"
 ") ENGINE = InnoDB")
 
+TABLES['gdp_b1_ga_vob'] = (
+    "CREATE TABLE `gdp_b1_ga_vob` ("
+    "`time_period` int not null,"
+    "`country` varchar(50),"
+    "`gdp_b1_ga_vob` numeric(12,2),"
+    "INDEX (`time_period`)"
+") ENGINE = InnoDB")
+
+TABLES['gdp_b1_ga_g'] = (
+    "CREATE TABLE `gdp_b1_ga_g` ("
+    "`time_period` int not null,"
+    "`country` varchar(50),"
+    "`gdp_b1_ga_g` numeric(12,2),"
+    "INDEX (`time_period`)"
+") ENGINE = InnoDB")
+
 cursor = connection.cursor()
 
 # Looping over the tables existing in the tables dictionary and executing the
