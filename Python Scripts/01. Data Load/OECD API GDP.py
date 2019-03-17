@@ -35,20 +35,116 @@ finally:
     print("Successful Connection ot the API!")
     gdp_series = list(gdp_connection.data.series)
     # Explore the resulted dataset
-    print(len(gdp_series))
+    print("The length of the resulted data set is: " + str(len(gdp_series)))
 
+# i = 0
+# while i<=1000:
+#     print(gdp_series[i].key)
+#     i += 1
 
+# List of measures
+# http://www.oecd.org/sdd/na/tips-for-a-better-use-of-the-oecd-annual-national-accounts-statistics.htm
+# C	Current prices
+# V	Constant prices, national base year
+# VP	Constant prices, previous year prices
+# VOB	Constant prices, OECD base year 2010
+# CXC	US $, current prices, current exchanges rates
+# VXCOB	US $, current prices, constant exchange rates, OECD base year 2010
+# VXVOB	US $, constant prices, constant exchange rates, OECD base year 2010
+# XVP	Previous year prices and previous year exchange rates
+# CPC	US $, current prices, current PPPs
+# VPCOB	US $, current prices, constant PPPs, OECD base year 2010
+# VPVOB	US $, constant prices, constant PPPs, OECD base year 2010
+# PVP	Previous year prices. previous year PPPs
+# HCXC	Per head, US $, current prices, current exchanges rates
+# HVXVOB	Per head, US $, constant prices, constant exchange rates, OECD base year 2010
+# HCPC	Per head, US $, current prices, current PPPs
+# HVPVOB	Per head, US $, constant prices, constant PPPs, OECD base year 2010
+# HCPIXOE	Per head, Index using current PPPs, OECD = 100
+# HVPIXOE	Per head, Index using constant prices, constant PPPs, OECD base year 2010, OECD = 100
+# VIX.OB	Volume index, 2010 = 100
+# DOB	Deflator, 2010 = 100
+# G	Growth rate
+# CD	National currency per US dollar
+# PER	Persons
+# FTE	Full-time equivalents2
+# JOB	Jobs
+# HRS	Hours
 
+# Extracting the VOB dataset for comparability
+gdp_dataset_vob = gdp_connection.write(s for s in gdp_connection.data.series if s.key.MEASURE == 'VOB')
+# Extracting the growth rate
+gdp_dataset_growth_rate = gdp_connection.write(s for s in gdp_connection.data.series if s.key.MEASURE == 'G')
 
-    print(gdp_series[122].key)
+gdp_dataset_vob = pd.DataFrame(gdp_dataset_vob.to_records())
+gdp_dataset_growth_rate = pd.DataFrame(gdp_dataset_growth_rate.to_records())
 
-rmw_dataset = rmw_connection.write(s for s in rmw_connection.data.series if s.key.PERIOD == 'H')
-rmw_dataset = pd.DataFrame(rmw_dataset.to_records())
-print(type(rmw_dataset))
-print(rmw_dataset.shape)
+print(type(gdp_dataset_vob))
+print(gdp_dataset_vob.shape)
+
+print(type(gdp_dataset_growth_rate))
+print(gdp_dataset_growth_rate.shape)
 
 # Data cleaning - staging
+# Define the function for cleaning the column names
+def column_names_cleaning(oecd_dataset):
+    '''
+    Creating a function for cleaning the column names for the data sets
+    returned from the OECD API. This way allows the user to copy paste
+    the function across scripts and perform time-consuming operations.
+    Provide the OECD data frame as an input data set.
+    :param oecd_dataset:
+    :return:
+    '''
 
+    oecd_dataset.columns = oecd_dataset.columns.str.replace('(', '')
+    oecd_dataset.columns = oecd_dataset.columns.str.replace(')', '')
+    oecd_dataset.columns = oecd_dataset.columns.str.replace("'", '')
+    oecd_dataset.columns = oecd_dataset.columns.str.replace(', ', '_')
+
+    return oecd_dataset
+
+help(column_names_cleaning)
+
+# Apply the function
+gdp_dataset_vob = column_names_cleaning(oecd_dataset=gdp_dataset_vob)
+gdp_dataset_growth_rate = column_names_cleaning(oecd_dataset=gdp_dataset_growth_rate)
+
+gdp_dataset_vob = gdp_dataset_vob.filter(regex='TIME_PERIOD|_B1_GA_VOB', axis=1)
+print(gdp_dataset_vob.shape)
+
+gdp_dataset_growth_rate = gdp_dataset_growth_rate.filter(regex='TIME_PERIOD|_B1_GA_G', axis=1)
+print(gdp_dataset_growth_rate.shape)
+
+# Define the function for reshaping the data sets
+def reshape_dataset(oecd_dataset):
+    '''
+    Creating a function for reshaping the data set returned from the OECD API.
+    This way allows the user to copy paste the function across scripts and perform time-consuming operations.
+    Provide the OECD data frame as an input data set.
+    :param oecd_dataset:
+    :return:
+    '''
+    oecd_dataset = pd.melt(frame=oecd_dataset, id_vars=['TIME_PERIOD'], var_name='country', value_name='gdp_b1_ga_vob')
+    oecd_dataset.columns = [x.lower() for x in oecd_dataset.columns]
+    oecd_dataset['country'] = oecd_dataset['country'].str.replace('_B1_GA_VOB', '')
+    oecd_dataset['country'] = oecd_dataset['country'].str.replace('_B1_GA_G', '')
+    oecd_dataset['gdp_b1_ga_vob'].fillna(0, inplace=True)
+
+    oecd_dataset['time_period'] = oecd_dataset['time_period'].astype(str).astype(int)
+
+    return oecd_dataset
+
+# Apply the function
+gdp_dataset_vob = reshape_dataset(oecd_dataset=gdp_dataset_vob)
+gdp_dataset_growth_rate = reshape_dataset(oecd_dataset=gdp_dataset_growth_rate)
+
+# Check the structure before sending the data sets to the DB
+print(gdp_dataset_vob.info())
+print(gdp_dataset_vob.describe())
+
+print(gdp_dataset_growth_rate.info())
+print(gdp_dataset_growth_rate.describe())
 
 # Connecting to the database
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv", sep=";", encoding="UTF-8")
