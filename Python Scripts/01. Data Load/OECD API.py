@@ -28,7 +28,7 @@ except UnicodeDecodeError:
 except KeyError:
     print("KeyError...")
 finally:
-    print("Successful Connection ot the API!")
+    print("Successful Connection to the API!")
     rmw_series = list(rmw_connection.data.series)
     # Explore the resulted dataset
     print(len(rmw_series))
