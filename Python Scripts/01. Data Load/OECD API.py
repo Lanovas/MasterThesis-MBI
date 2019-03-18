@@ -71,8 +71,7 @@ database=str(pwd_gen.loc[0, 'database'])
 try:
     # connect to the MySQL server
     print("Connecting to the MySQL database...")
-    engine = create_engine('mysql+mysqlconnector://'+user+':'+password+'@'+host+':'+port+'/'+database,
-                            echo=False)
+    engine = create_engine('mysql+mysqlconnector://'+user+':'+password+'@'+host+':'+port+'/'+database, echo=False)
     connection = engine.connect()
     inspector = inspect(engine)
 
@@ -85,11 +84,20 @@ print(rmw_melted.info())
 print(rmw_melted.describe())
 rmw_melted['time_period'] = rmw_melted['time_period'].astype(str).astype(int)
 
-rmw_melted.to_sql(name='oecd_rmw',
+if len(rmw_melted) > 0:
+
+    rmw_melted.to_sql(name='oecd_rmw',
                   con=engine,
-                  if_exists='append',
+                  if_exists='replace',
                   index=False)
+else:
+
+    rmw_melted = pd.read_sql_query(sql="SELECT * FROM oecd_rmw", con=engine)
 
 # Close the MySQL connection
 connection.close()
 engine.dispose()
+
+# Data Analysis - Visualizations
+
+
