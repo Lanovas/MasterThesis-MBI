@@ -1,3 +1,5 @@
+from IPython import get_ipython
+get_ipython().magic('reset -sf')
 import pandasdmx as pdmx
 import pandas as pd
 from sqlalchemy import create_engine
