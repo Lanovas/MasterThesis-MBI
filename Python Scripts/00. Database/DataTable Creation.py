@@ -1,4 +1,6 @@
 # Import the necessary packages
+from IPython import get_ipython
+get_ipython().magic('reset -sf')
 import pandas as pd
 import mysql.connector
 from mysql.connector import errorcode
@@ -69,6 +71,13 @@ TABLES['gdp_b1_ga_g'] = (
     "`country` varchar(50),"
     "`gdp_b1_ga_g` numeric(12,2),"
     "INDEX (`time_period`)"
+") ENGINE = InnoDB")
+
+TABLES['countries_match'] = (
+    "CREATE TABLE `countries_match` ("
+    "`country_code` varchar(50),"
+    "`country_full_name` varchar(100)," 
+    "INDEX (`country_code`)"
 ") ENGINE = InnoDB")
 
 cursor = connection.cursor()
