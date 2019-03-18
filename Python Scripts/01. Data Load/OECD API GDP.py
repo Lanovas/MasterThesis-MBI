@@ -1,3 +1,5 @@
+from IPython import get_ipython
+get_ipython().magic('reset -sf')
 import pandasdmx as pdmx
 import pandas as pd
 from sqlalchemy import create_engine
@@ -157,8 +159,7 @@ database=str(pwd_gen.loc[0, 'database'])
 try:
     # connect to the MySQL server
     print("Connecting to the MySQL database...")
-    engine = create_engine('mysql+mysqlconnector://'+user+':'+password+'@'+host+':'+port+'/'+database,
-                            echo=False)
+    engine = create_engine('mysql+mysqlconnector://'+user+':'+password+'@'+host+':'+port+'/'+database, echo=False)
     connection = engine.connect()
     inspector = inspect(engine)
 
@@ -166,18 +167,26 @@ finally:
     if 'origin_greece' in inspector.get_table_names():
         print("Connection was successful!")
 
-# Load the data to the data table gdp_b1_ga_vob
-gdp_dataset_vob.to_sql(name='gdp_b1_ga_vob',
-                       con=engine,
-                       if_exists='append',
-                       index=False)
+# Load the data to the data table gdp_b1_ga_vob and
+# the data table gdp_b1_ga_g if they have rows, otherwise
+# use the data sets already in the database
 
-# Load the data to the data table gdp_b1_ga_g
-gdp_dataset_growth_rate.to_sql(name='gdp_b1_ga_g',
+if len(gdp_dataset_vob) > 0 and len(gdp_dataset_growth_rate) > 0:
+    gdp_dataset_vob.to_sql(name='gdp_b1_ga_vob',
+                           con=engine,
+                           if_exists='replace',
+                           index=False)
+
+    gdp_dataset_growth_rate.to_sql(name='gdp_b1_ga_g',
                                con=engine,
-                               if_exists='append',
+                               if_exists='replace',
                                index=False)
+else:
+    gdp_dataset_vob = pd.read_sql_query(sql="SELECT * FROM gdp_b1_ga_vob", con=engine)
+    gdp_dataset_growth_rate = pd.read_sql_query(sql="SELECT * FROM gdp_b1_ga_g", con=engine)
 
 # Close the MySQL connection
 connection.close()
 engine.dispose()
+
+# Data Analysis - Visualizations
