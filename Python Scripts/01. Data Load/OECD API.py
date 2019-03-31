@@ -99,7 +99,3 @@ else:
 # Close the MySQL connection
 connection.close()
 engine.dispose()
-
-# Data Analysis - Visualizations
-
-
