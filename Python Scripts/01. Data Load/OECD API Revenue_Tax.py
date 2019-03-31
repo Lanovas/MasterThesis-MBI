@@ -9,77 +9,54 @@ from sqlalchemy import inspect
 # root_url = "https://stats.oecd.org/restsdmx/sdmx.ashx/GetData/"
 oecd_connection = pdmx.api.Request('OECD')
 
-# ----------------------- Gross Domestic Product (GDP) ----------------------- #
-# https://en.wikipedia.org/wiki/Gross_domestic_product
-# GDP can be determined in three ways, all of which should, in principle, give the same result.
-# They are the production (or output or value added) approach, the income approach, or the speculated expenditure approach.
-# The most direct of the three is the production approach, which sums the outputs of every class of enterprise to arrive at
-# the total. The expenditure approach works on the principle that all of the product must be bought by somebody,
-# therefore the value of the total product must be equal to people's total expenditures in buying things.
-# The income approach works on the principle that the incomes of the productive factors ("producers," colloquially)
-# must be equal to the value of their product, and determines GDP by finding the sum of all producers' incomes.
-# In national currency, in current prices and constant prices (national base year, previous year prices and OECD base year i.e. 2010).
-# For comparative purposes in US $ current prices and constant prices, using exchange rate and for the GDP by expenditures
-# (in absence of specific PPP series) GDP PPPs for all series except actual individual consumption where a specific PPP is used.
-# Expressed in millions and in indices. For the Euro area countries, the data in national currency for all years are calculated
-# using the fixed conversion rates against the euro.
+# ----------------------- Public Sector, Taxation, Regulation (AWCOMP) ----------------------- #
+# These tables, which are also reported in the OECD Taxing Wages publication, provide unique
+# information for each of the OECD countries on the income taxes paid by workers, their social
+# security contributions, the family benefits they receive in the form of cash transfers as well
+# as the social security contributions and payroll taxes paid by their employers.
+# The amounts of taxes and social security contributions paid and cash benefits received are set out,
+# programme by programme, for 8 different household types characterised by marital status, number
+# of children, earnings levels expressed as proportion of average wages and whether there are one or two earners.
+# The results reported include the average and marginal tax burden for each household type . These data on tax
+# burdens and cash benefits are widely used in academic research and the preparation and evaluation of social
+# economic policy-making.
 
 # Data importing
-dataset_identifier = "SNA_TABLE1"
+dataset_identifier = "AWCOMP"
 
 try:
-    gdp_connection = oecd_connection.get(resource_type='data', resource_id=dataset_identifier, params={'startPeriod': '1960'})
+    dataset_connection = oecd_connection.get(resource_type='data', resource_id=dataset_identifier, params={'startPeriod': '1960'})
 except UnicodeDecodeError:
     print("UnicodeDecodeError...")
 except KeyError:
     print("KeyError...")
 finally:
     print("Successful Connection to the API!")
-    gdp_series = list(gdp_connection.data.series)
+    dataset_series = list(dataset_connection.data.series)
     # Explore the resulted dataset
-    print("The length of the resulted data set is: " + str(len(gdp_series)))
+    print("The length of the resulted data set is: " + str(len(dataset_series)))
+
+i = 0
+while i <= 1000:
+    print(dataset_series[i].key)
+    i += 1
 
 # i = 0
-# while i<=1000:
-#     print(gdp_series[i].key)
-#     i += 1
+# unique_list = []
+# while i <= len(dataset_series):
+    # check if exists in unique_list or not
+#   if dataset_series[i].key not in unique_list:
+#        unique_list.append(dataset_series[i].key)
+#    i += 1
 
-# List of measures
-# http://www.oecd.org/sdd/na/tips-for-a-better-use-of-the-oecd-annual-national-accounts-statistics.htm
-# C	Current prices
-# V	Constant prices, national base year
-# VP	Constant prices, previous year prices
-# VOB	Constant prices, OECD base year 2010
-# CXC	US $, current prices, current exchanges rates
-# VXCOB	US $, current prices, constant exchange rates, OECD base year 2010
-# VXVOB	US $, constant prices, constant exchange rates, OECD base year 2010
-# XVP	Previous year prices and previous year exchange rates
-# CPC	US $, current prices, current PPPs
-# VPCOB	US $, current prices, constant PPPs, OECD base year 2010
-# VPVOB	US $, constant prices, constant PPPs, OECD base year 2010
-# PVP	Previous year prices. previous year PPPs
-# HCXC	Per head, US $, current prices, current exchanges rates
-# HVXVOB	Per head, US $, constant prices, constant exchange rates, OECD base year 2010
-# HCPC	Per head, US $, current prices, current PPPs
-# HVPVOB	Per head, US $, constant prices, constant PPPs, OECD base year 2010
-# HCPIXOE	Per head, Index using current PPPs, OECD = 100
-# HVPIXOE	Per head, Index using constant prices, constant PPPs, OECD base year 2010, OECD = 100
-# VIX.OB	Volume index, 2010 = 100
-# DOB	Deflator, 2010 = 100
-# G	Growth rate
-# CD	National currency per US dollar
-# PER	Persons
-# FTE	Full-time equivalents2
-# JOB	Jobs
-# HRS	Hours
+# Extracting the Total Groos Earnings before taxes in national currencies
+dataset_key = dataset_connection.write(s for s in dataset_connection.data.series if s.key.INDICATOR == '1_1')
+total_gross_before_taxes_dataset = pd.DataFrame(dataset_key.to_records())
 
-# Extracting the VOB dataset for comparability
-gdp_dataset_vob = gdp_connection.write(s for s in gdp_connection.data.series if s.key.MEASURE == 'VOB')
-# Extracting the growth rate
-gdp_dataset_growth_rate = gdp_connection.write(s for s in gdp_connection.data.series if s.key.MEASURE == 'G')
+# Extracting the Average Income Tax Rate (percentage)
+dataset_key = dataset_connection.write(s for s in dataset_connection.data.series if s.key.INDICATOR == '2_1')
+average_income_tax_rate_dataset = pd.DataFrame(dataset_key.to_records())
 
-gdp_dataset_vob = pd.DataFrame(gdp_dataset_vob.to_records())
-gdp_dataset_growth_rate = pd.DataFrame(gdp_dataset_growth_rate.to_records())
 
 print(type(gdp_dataset_vob))
 print(gdp_dataset_vob.shape)
