@@ -107,6 +107,16 @@ TABLES['oecd_average_tax_wedge'] = (
     "INDEX (`time_period`)"
 ") ENGINE = InnoDB")
 
+TABLES['currencies_match'] = (
+    "CREATE TABLE `currencies_match` ("
+    "`country` varchar(200),"
+    "`country_code` varchar(50),"
+    "`currency_long` varchar(100),"
+    "`currency_long_plural` varchar(100),"
+    "`currency_code` varchar(50)," 
+    "INDEX (`country`)"
+") ENGINE = InnoDB")
+
 cursor = connection.cursor()
 
 # Looping over the tables existing in the tables dictionary and executing the
