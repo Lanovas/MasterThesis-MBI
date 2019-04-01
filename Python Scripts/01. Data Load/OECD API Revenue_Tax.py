@@ -49,7 +49,7 @@ while i <= 1000:
 #        unique_list.append(dataset_series[i].key)
 #    i += 1
 
-# Extracting the Total Groos Earnings before taxes in national currencies
+# Extracting the Total Gross Earnings before taxes in national currencies
 dataset_key = dataset_connection.write(s for s in dataset_connection.data.series if s.key.INDICATOR == '1_1')
 total_gross_before_taxes_dataset = pd.DataFrame(dataset_key.to_records())
 
@@ -57,12 +57,18 @@ total_gross_before_taxes_dataset = pd.DataFrame(dataset_key.to_records())
 dataset_key = dataset_connection.write(s for s in dataset_connection.data.series if s.key.INDICATOR == '2_1')
 average_income_tax_rate_dataset = pd.DataFrame(dataset_key.to_records())
 
+# Extracting the Average Tax Wedge
+dataset_key = dataset_connection.write(s for s in dataset_connection.data.series if s.key.INDICATOR == '2_6')
+average_tax_wedge_dataset = pd.DataFrame(dataset_key.to_records())
 
-print(type(gdp_dataset_vob))
-print(gdp_dataset_vob.shape)
+print(type(total_gross_before_taxes_dataset))
+print(total_gross_before_taxes_dataset.shape)
 
-print(type(gdp_dataset_growth_rate))
-print(gdp_dataset_growth_rate.shape)
+print(type(average_income_tax_rate_dataset))
+print(average_income_tax_rate_dataset.shape)
+
+print(type(average_tax_wedge_dataset))
+print(average_tax_wedge_dataset.shape)
 
 # Data cleaning - staging
 # Define the function for cleaning the column names
@@ -86,14 +92,9 @@ def column_names_cleaning(oecd_dataset):
 help(column_names_cleaning)
 
 # Apply the function
-gdp_dataset_vob = column_names_cleaning(oecd_dataset=gdp_dataset_vob)
-gdp_dataset_growth_rate = column_names_cleaning(oecd_dataset=gdp_dataset_growth_rate)
-
-gdp_dataset_vob = gdp_dataset_vob.filter(regex='TIME_PERIOD|_B1_GA_VOB', axis=1)
-print(gdp_dataset_vob.shape)
-
-gdp_dataset_growth_rate = gdp_dataset_growth_rate.filter(regex='TIME_PERIOD|_B1_GA_G', axis=1)
-print(gdp_dataset_growth_rate.shape)
+total_gross_before_taxes_dataset = column_names_cleaning(oecd_dataset=total_gross_before_taxes_dataset)
+average_income_tax_rate_dataset = column_names_cleaning(oecd_dataset=average_income_tax_rate_dataset)
+average_tax_wedge_dataset = column_names_cleaning(oecd_dataset=average_tax_wedge_dataset)
 
 # Define the function for reshaping the data sets
 def reshape_dataset(oecd_dataset):
@@ -104,24 +105,34 @@ def reshape_dataset(oecd_dataset):
     :param oecd_dataset:
     :return:
     '''
-    oecd_dataset = pd.melt(frame=oecd_dataset, id_vars=['TIME_PERIOD'], var_name='country', value_name='gdp_b1_ga')
+    oecd_dataset = pd.melt(frame=oecd_dataset, id_vars=['TIME_PERIOD'], var_name='family_country', value_name='metric')
     oecd_dataset.columns = [x.lower() for x in oecd_dataset.columns]
-    oecd_dataset['country'] = oecd_dataset['country'].str.replace('_B1_GA_VOB', '')
-    oecd_dataset['country'] = oecd_dataset['country'].str.replace('_B1_GA_G', '')
-    oecd_dataset['gdp_b1_ga'].fillna(0, inplace=True)
+    oecd_dataset['family_country'] = oecd_dataset['family_country'].str.replace('1_1_', '')
+    oecd_dataset['family_country'] = oecd_dataset['family_country'].str.replace('2_1_', '')
+    oecd_dataset['family_country'] = oecd_dataset['family_country'].str.replace('2_6_', '')
+    oecd_dataset['metric'].fillna(0, inplace=True)
     oecd_dataset['time_period'] = oecd_dataset['time_period'].astype(str).astype(int)
+
+    oecd_dataset['family_type'], oecd_dataset['country'] = oecd_dataset['family_country'].str.split('_', 1).str
+    oecd_dataset.drop('family_country', axis=1, inplace=True)
+    oecd_dataset = oecd_dataset[['time_period', 'country', 'family_type', 'metric']]
 
     return oecd_dataset
 
 # Apply the function
-gdp_dataset_vob = reshape_dataset(oecd_dataset=gdp_dataset_vob)
-gdp_dataset_vob = gdp_dataset_vob.rename(columns={gdp_dataset_vob.columns[2]:'gdp_b1_ga_vob'})
-gdp_dataset_growth_rate = reshape_dataset(oecd_dataset=gdp_dataset_growth_rate)
-gdp_dataset_growth_rate = gdp_dataset_growth_rate.rename(columns={gdp_dataset_growth_rate.columns[2]:'gdp_b1_ga_g'})
+total_gross_before_taxes_dataset = reshape_dataset(oecd_dataset=total_gross_before_taxes_dataset)
+total_gross_before_taxes_dataset = total_gross_before_taxes_dataset.rename(columns={total_gross_before_taxes_dataset.columns[3]:'total_gross'})
+
+average_income_tax_rate_dataset = reshape_dataset(oecd_dataset=average_income_tax_rate_dataset)
+average_income_tax_rate_dataset = average_income_tax_rate_dataset.rename(columns={average_income_tax_rate_dataset.columns[3]:'average_income_tax'})
+
+average_tax_wedge_dataset = reshape_dataset(oecd_dataset=average_tax_wedge_dataset)
+average_tax_wedge_dataset = average_tax_wedge_dataset.rename(columns={average_tax_wedge_dataset.columns[3]:'average_tax_wedge'})
 
 # Check the structure before sending the data sets to the DB
-print(gdp_dataset_vob.info())
-print(gdp_dataset_growth_rate.info())
+print(total_gross_before_taxes_dataset.info())
+print(average_income_tax_rate_dataset.info())
+print(average_tax_wedge_dataset.info())
 
 # Connecting to the database
 pwd_gen = pd.read_csv(filepath_or_buffer="C:/Users/james/PycharmProjects/PWDGen.csv", sep=";", encoding="UTF-8")
@@ -144,23 +155,29 @@ finally:
     if 'origin_greece' in inspector.get_table_names():
         print("Connection was successful!")
 
-# Load the data to the data table gdp_b1_ga_vob and
-# the data table gdp_b1_ga_g if they have rows, otherwise
+# Load the data to the data table oecd_gross_revenue, oecd_average_income_tax and
+# the data table oecd_average_tax_wedge if they have rows, otherwise
 # use the data sets already in the database
 
-if len(gdp_dataset_vob) > 0 and len(gdp_dataset_growth_rate) > 0:
-    gdp_dataset_vob.to_sql(name='gdp_b1_ga_vob',
-                           con=engine,
-                           if_exists='replace',
-                           index=False)
+if len(total_gross_before_taxes_dataset) > 0 and len(average_income_tax_rate_dataset) and len(average_tax_wedge_dataset) > 0:
+    total_gross_before_taxes_dataset.to_sql(name='oecd_gross_revenue',
+                                            con=engine,
+                                            if_exists='replace',
+                                            index=False)
 
-    gdp_dataset_growth_rate.to_sql(name='gdp_b1_ga_g',
-                               con=engine,
-                               if_exists='replace',
-                               index=False)
+    average_income_tax_rate_dataset.to_sql(name='oecd_average_income_tax',
+                                           con=engine,
+                                           if_exists='replace',
+                                           index=False)
+
+    average_tax_wedge_dataset.to_sql(name='oecd_average_tax_wedge',
+                                     con=engine,
+                                     if_exists='replace',
+                                     index=False)
 else:
-    gdp_dataset_vob = pd.read_sql_query(sql="SELECT * FROM gdp_b1_ga_vob", con=engine)
-    gdp_dataset_growth_rate = pd.read_sql_query(sql="SELECT * FROM gdp_b1_ga_g", con=engine)
+    total_gross_before_taxes_dataset = pd.read_sql_query(sql="SELECT * FROM oecd_gross_revenue", con=engine)
+    average_income_tax_rate_dataset = pd.read_sql_query(sql="SELECT * FROM oecd_average_income_tax", con=engine)
+    average_tax_wedge_dataset = pd.read_sql_query(sql="SELECT * FROM oecd_average_tax_wedge", con=engine)
 
 # Close the MySQL connection
 connection.close()
