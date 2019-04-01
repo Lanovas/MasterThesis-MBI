@@ -80,6 +80,33 @@ TABLES['countries_match'] = (
     "INDEX (`country_code`)"
 ") ENGINE = InnoDB")
 
+TABLES['oecd_gross_revenue'] = (
+    "CREATE TABLE `oecd_gross_revenue` ("
+    "`time_period` int not null,"
+    "`country` varchar(50),"
+    "`family_type` varchar(50),"
+    "`total_gross` numeric(12,2),"
+    "INDEX (`time_period`)"
+") ENGINE = InnoDB")
+
+TABLES['oecd_average_income_tax'] = (
+    "CREATE TABLE `oecd_average_income_tax` ("
+    "`time_period` int not null,"
+    "`country` varchar(50),"
+    "`family_type` varchar(50),"
+    "`average_income_tax` numeric(12,2),"
+    "INDEX (`time_period`)"
+") ENGINE = InnoDB")
+
+TABLES['oecd_average_tax_wedge'] = (
+    "CREATE TABLE `oecd_average_tax_wedge` ("
+    "`time_period` int not null,"
+    "`country` varchar(50),"
+    "`family_type` varchar(50),"
+    "`average_tax_wedge` numeric(12,2),"
+    "INDEX (`time_period`)"
+") ENGINE = InnoDB")
+
 cursor = connection.cursor()
 
 # Looping over the tables existing in the tables dictionary and executing the
